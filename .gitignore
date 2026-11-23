@@ -1,0 +1,11 @@
+# IDE
+.idea/
+
+# Test and coverage artifacts
+*.test
+*.out
+coverage.*
+
+# Build artifacts
+/bin/
+/dist/
