@@ -1,18 +1,26 @@
-//go:build !windows
+//go:build aix || darwin || dragonfly || freebsd || linux || netbsd || openbsd || solaris || illumos
 
 package portscan
 
-import "syscall"
+import (
+	"errors"
+	"syscall"
+)
 
-func errnoState(errno syscall.Errno) State {
+func stateFromErrno(err error) (State, bool) {
+	var errno syscall.Errno
+	if !errors.As(err, &errno) {
+		return StateError, false
+	}
+
 	switch errno {
 	case syscall.ECONNREFUSED, syscall.ECONNRESET:
-		return StateClosed
+		return StateClosed, true
 	case syscall.ETIMEDOUT:
-		return StateTimeout
+		return StateTimeout, true
 	case syscall.EHOSTUNREACH, syscall.ENETUNREACH, syscall.EHOSTDOWN, syscall.ENETDOWN:
-		return StateUnreachable
+		return StateUnreachable, true
 	default:
-		return StateError
+		return StateError, false
 	}
 }

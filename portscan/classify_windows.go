@@ -2,7 +2,10 @@
 
 package portscan
 
-import "syscall"
+import (
+	"errors"
+	"syscall"
+)
 
 // Windows socket error numbers. The syscall package exposes only a few of the
 // WSA* constants, so the values are listed explicitly. They are stable Win32
@@ -18,15 +21,20 @@ const (
 	wsaENETUNREACH  syscall.Errno = 10051
 )
 
-func errnoState(errno syscall.Errno) State {
+func stateFromErrno(err error) (State, bool) {
+	var errno syscall.Errno
+	if !errors.As(err, &errno) {
+		return StateError, false
+	}
+
 	switch errno {
 	case wsaECONNREFUSED, wsaECONNRESET, wsaECONNABORTED:
-		return StateClosed
+		return StateClosed, true
 	case wsaETIMEDOUT:
-		return StateTimeout
+		return StateTimeout, true
 	case wsaEHOSTUNREACH, wsaENETUNREACH, wsaEHOSTDOWN, wsaENETDOWN:
-		return StateUnreachable
+		return StateUnreachable, true
 	default:
-		return StateError
+		return StateError, false
 	}
 }

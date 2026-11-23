@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net"
 	"os"
-	"syscall"
 )
 
 // classifyConnectError converts a dial error into a structured state.
@@ -28,18 +27,13 @@ func classifyConnectError(ctx context.Context, err error) (State, error) {
 		return StateTimeout, err
 	}
 
-	var errno syscall.Errno
-	if errors.As(err, &errno) {
-		switch errnoState(errno) {
-		case StateClosed:
+	if state, ok := stateFromErrno(err); ok {
+		if state == StateClosed {
 			// A refused or reset connection is a probe outcome, not an
 			// error. Err is nil for StateClosed.
 			return StateClosed, nil
-		case StateTimeout:
-			return StateTimeout, err
-		case StateUnreachable:
-			return StateUnreachable, err
 		}
+		return state, err
 	}
 
 	return StateError, err

@@ -30,6 +30,7 @@
 │   ├── classify.go            // классификация ошибок подключения
 │   ├── classify_windows.go    // коды ошибок WinSock
 │   ├── classify_unix.go       // коды ошибок POSIX
+│   ├── classify_other.go      // fallback для платформ без syscall.Errno
 │   └── *_test.go
 └── README.md
 ```
